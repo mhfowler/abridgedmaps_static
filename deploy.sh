@@ -2,4 +2,4 @@
 ./build.sh
 git add -A
 git commit -m "build commit"
-git push origin gh-pages
+git push origin master:gh-pages
