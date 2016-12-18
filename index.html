@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,300,100' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <meta name="description" content="Text-only Google Maps">
+    <meta name="keywords" content="Abridged,Text Only,Google Maps, Abstract Maps">
+
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+
+    <link href="/static/FAV_A.png" rel="shortcut icon" type="image/x-icon">
+
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            height: 100%;
+        }
+        .controls {
+            margin-top: 10px;
+            border: 1px solid transparent;
+            border-radius: 2px 0 0 2px;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            height: 32px;
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+
+
+        #pac-input:focus {
+            border-color: #4d90fe;
+        }
+
+        .pac-container {
+            font-family: Roboto;
+        }
+
+        #type-selector {
+            color: #fff;
+            background-color: #4d90fe;
+            padding: 5px 11px 0px 11px;
+        }
+
+        #type-selector label {
+            font-family: Roboto;
+            font-size: 13px;
+            font-weight: 300;
+        }
+
+    </style>
+    <title>Abridged Maps</title>
+
+    <link rel="stylesheet" type="text/css" href="/static/abridged.css">
+
+
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-70410710-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+</head>
+<body>
+
+
+<div class="explanation-wrapper">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class="simple-text">
+        <p class="title-paragraph">
+            Abridged Maps: Text-only Maps.
+        </p>
+
+        <p>
+            From Borneo to Brooklyn, we visualize the world through the names attached to places.
+            These words shape our understandings of the world more than the land signified by 'Toronto', 'Tahiti', or 'Trinidad'.
+        </p>
+
+        <p>
+            Abridged Maps strips Google Maps of all natural and graphical imagery to reveal a set of concrete poems illuminating the structure of contemporary space:
+        </p>
+        <div class="map-links">
+            <a class="maps-link">rome</a>, <a class="maps-link">bangkok</a>, <a class="maps-link">dubai</a>, <a class="maps-link">sydney</a>,
+            <a class="maps-link">buenos aires</a>, <a class="maps-link">london</a>, <a class="maps-link">washington</a>,
+            <a class="maps-link">havana</a>, <a class="maps-link">barcelona</a>, <a class="maps-link">cairo</a>, <a class="maps-link">tokyo</a>,
+            <a class="maps-link">kiev</a>,  <a class="maps-link">new delhi</a>, <a class="maps-link">fes</a>, <a class="maps-link">paris</a>
+        </div>
+        <br><br>
+        <div class="bio-links">
+
+            <a class="bio-link" href="http://jordibeard.com/" target="_blank">jordan beard</a> / <a class='bio-link' href="http://maxhfowler.com" target="_blank">max fowler</a>
+
+        </div>
+    </div>
+
+</div>
+
+<div class="maps-wrapper">
+
+    <div class="link-to-explanation">
+
+        i
+    </div>
+
+    <a class="teleport-link" href="/gmaps/take_me_anywhere/"><img class='compass-img' src="/static/img/compass.png"/></a>
+
+    <h1 class="place_str"></h1>
+
+    <input id="pac-input" class="controls" type="text" placeholder="Search Places">
+    <div id="map"></div>
+
+</div>
+<script>
+
+    var coordinates = "None";
+
+    $(document).ready(function() {
+
+        // js
+        console.log(window.location.pathname);
+        if (window.location.pathname.indexOf('.') != -1) {
+            window.scrollTo(0, 0);
+            $('.explanation-wrapper').hide();
+            $('.maps-wrapper').show();
+            $('.maps-wrapper').css({'height':'104%'});
+            $('body').css({
+                height:'100%',
+                overflow:'hidden'
+            });
+        }
+
+        window.scrollTo(0, 0);
+
+        // csrf protect
+        /* csrf protection */
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        $(".link-to-explanation").click(function(e) {
+            window.scrollTo(0, 0);
+            $('.explanation-wrapper').show();
+            $('.explanation-wrapper').css("opacity", 0.8);
+            $("body").css("overflow", "auto");
+            $(".maps-wrapper").css({'height': '100%'});
+        });
+
+
+
+
+
+
+
+        $('.maps-link').click(function(e) {
+
+            e.preventDefault();
+            var link_text = $(this).text();
+            var link_to_coordinates_map = {
+                'boston': [42.333262, -71.119202, 16],
+                'new york': [40.714486, -73.9807945, 14],
+                'barcelona': [41.387010, 2.170223, 14],
+                'mexico city': [19.432552, -99.133152, 14],
+                'london': [51.5059388, -0.1398862, 14],
+                'tokyo': [35.6591335, 139.7001828, 15],
+                'hong kong': [22.282114, 114.157320, 15],
+                'sydney': [-33.883059, 151.196884, 14],
+                'moscow': [55.754038, 37.621054, 15],
+                'istanbul': [41.007800, 28.983221, 14],
+                'cape town': [-33.926003, 18.415128, 14],
+                'cairo': [30.044224, 31.235642, 14],
+                'dubai': [25.232914, 55.172393, 15],
+                'new delhi': [28.614580, 77.215158, 15],
+                'havana': [23.129953, -82.385677, 14],
+                'rome': [41.899669, 12.473004, 14],
+                'rio': [-22.981886, -43.193541, 14],
+                'buenos aires': [-34.610223, -58.377361, 14],
+                'chicago': [41.875906, -87.627107, 14],
+                'montreal': [45.515492, -73.566146, 14],
+                'washington': [38.8974361,-77.044135, 14],
+                'kiev': [50.455994, 30.540172, 14],
+                'fes': [34.019067, -5.007964, 14],
+                'bangkok': [13.766384, 100.469660, 14],
+                'paris': [48.846328, 2.325754, 14]
+            };
+            var which_coordinates = link_to_coordinates_map[link_text];
+            var new_position = new google.maps.LatLng(which_coordinates[0], which_coordinates[1]);
+            map.setCenter(new_position);
+            map.setZoom(which_coordinates[2]);
+            window.scrollTo(0, 0);
+
+            $('.maps-wrapper').css({'height':'104%'});
+            $('.maps-wrapper').show();
+            $('body').css({
+                height:'100%',
+                overflow:'hidden'
+            });
+            setTimeout(function() {
+
+
+
+                $('.explanation-wrapper').fadeOut(1000);
+            }, 0);
+
+        });
+
+        $('.teleport-link').click(function(e) {
+            e.preventDefault();
+
+            $.post("/gmaps/take_me_anywhere/", {}, function (data) {
+
+                var obj = jQuery.parseJSON(data);
+                var lat = obj.lat;
+                var lon = obj.lon;
+                var place_str = obj.place_str;
+                var new_position = new google.maps.LatLng(lat, lon);
+                map.setCenter(new_position);
+                map.setZoom(14);
+                $('.place_str').html(place_str);
+                $('.place_str').show();
+                $('.place_str').fadeOut(4000);
+            }).fail(function() {
+
+                window.location.replace("/gmaps/take_me_anywhere/");
+            });
+        });
+
+        $('.bio-link').click(function(e) {
+            e.stopPropagation();
+        });
+    });
+
+    function initAutocomplete() {
+        // Specify features and elements to define styles.
+        var styleArray = [
+            {
+                "stylers": [
+                    { "visibility": "off" }
+                ]
+            },
+            {
+                "elementType": "labels.text",
+                "stylers": [
+                    { "visibility": "on" }
+                ]
+            },{
+                "elementType": "geometry",
+                "stylers": [
+                    { "visibility": "off" }
+                ]
+            },{
+                "elementType": "labels.icon",
+                "stylers": [
+                    { "visibility": "off" }
+                ]
+            },{
+                "elementType": "geometry.fill",
+                "stylers": [
+                    { "color": "#ffffff" },
+                    { "lightness": 100 },
+                    { "gamma": 0.9 },
+                    { "visibility": "on" }
+                ]
+            }
+        ];
+
+        // parse coordinates from url string (rome by default)
+        var splitted = [41.899669, 12.473004, 14];
+        if (coordinates && coordinates.indexOf(',') != -1) {
+            splitted = coordinates.split(",");
+        }
+
+        var showZoom = false;
+        if ($(document).width() > 700) {
+            showZoom = true;
+        }
+
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: parseFloat(splitted[0]), lng: parseFloat(splitted[1])},
+            scrollwheel: false,
+            // Apply the map style array to the map.
+            styles: styleArray,
+            zoom: parseInt(splitted[2]),
+            streetViewControl: false,
+            zoomControl: showZoom,
+            mapTypeControl: false,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.TOP_LEFT
+            }
+        });
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+            searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        // [START region_getplaces]
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+            var places = searchBox.getPlaces();
+
+            if (places.length == 0) {
+                return;
+            }
+
+            // Clear out the old markers.
+            markers.forEach(function(marker) {
+                marker.setMap(null);
+            });
+            markers = [];
+
+            // For each place, get the icon, name and location.
+            var bounds = new google.maps.LatLngBounds();
+            places.forEach(function(place) {
+                var icon = {
+                    url: place.icon,
+                    size: new google.maps.Size(200, 200),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(17, 34),
+                    scaledSize: new google.maps.Size(100, 100)
+                };
+
+                // Create a marker for each place.
+
+
+
+
+
+
+
+                if (place.geometry.viewport) {
+                    // Only geocodes have viewport.
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.extend(place.geometry.location);
+                }
+            });
+            map.fitBounds(bounds);
+            map.setZoom(14);
+        });
+        // [END region_getplaces]
+    }
+
+
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWgw_nrke6q_rcgg9syF4If4Z4-2NCwwY&libraries=places&callback=initAutocomplete"
+        async defer></script>
+</body>
+</html>
